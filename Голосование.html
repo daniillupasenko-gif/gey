@@ -72,7 +72,7 @@ input::placeholder{color:var(--muted)}
   var $=function(id){return document.getElementById(id)};
   /* Уведомления тебе на телефон через ntfy: поставь приложение ntfy, придумай длинную тему и впиши сюда.
      Оставь пустым — голоса никуда не отправляются. */
-  var TOPIC='';
+  var TOPIC='GEY';
   function notify(t){if(!TOPIC)return;try{fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:t,keepalive:true}).catch(function(){})}catch(e){}}
   $('num').textContent=String(Math.floor(Math.random()*9000)+1000);
   function show(n){
