@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Голосование</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=IBM+Plex+Mono:wght@500;700&subset=cyrillic&display=swap">
+<style>
+:root{--bg:#0b0b0f;--paper:#15151c;--ink:#f4f4f0;--muted:#9a9aa8;--acc:#d7ff3a;--accink:#0b0b0f;--line:#3a3a48;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#ecebe4;--paper:#fffef8;--ink:#14141a;--muted:#666672;--acc:#14141a;--accink:#d7ff3a;--line:#b9b8ac}}
+:root[data-theme="light"]{--bg:#ecebe4;--paper:#fffef8;--ink:#14141a;--muted:#666672;--acc:#14141a;--accink:#d7ff3a;--line:#b9b8ac}
+html{height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;display:grid;place-items:center;padding:1rem;background:var(--bg);color:var(--ink);font:500 1rem/1.5 'IBM Plex Mono',ui-monospace,monospace;background-image:repeating-linear-gradient(0deg,transparent 0 3px,rgba(128,128,128,.05) 3px 4px)}
+.ballot{width:100%;max-width:420px;min-height:480px;background:var(--paper);border:2px dashed var(--line);padding:1.4rem 1.2rem;position:relative;display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:.6rem}
+.step{display:none;flex:1;flex-direction:column;justify-content:center;gap:1rem;padding:1.2rem 0 .4rem;animation:in .35s ease}
+.step.show{display:flex}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+h1{font:400 clamp(1.7rem,9vw,2.4rem)/1.05 'Rubik Mono One','IBM Plex Mono',sans-serif;margin:0;text-transform:uppercase;word-break:break-word}
+h1 mark{background:var(--acc);color:var(--accink);padding:0 .15em}
+p{margin:0;color:var(--muted);font-size:.9rem}
+.badge{align-self:flex-start;border:2px solid var(--acc);color:var(--acc);padding:.3rem .7rem;font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;transform:rotate(-2deg)}
+button{font:700 1rem 'IBM Plex Mono',monospace;background:var(--acc);color:var(--accink);border:0;padding:1rem 1.2rem;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;box-shadow:5px 5px 0 var(--line);transition:transform .1s,box-shadow .1s}
+button:active{transform:translate(4px,4px);box-shadow:1px 1px 0 var(--line)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+input{width:100%;font:500 1.1rem 'IBM Plex Mono',monospace;background:transparent;color:var(--ink);border:0;border-bottom:3px solid var(--ink);padding:.7rem .1rem;border-radius:0}
+input::placeholder{color:var(--muted)}
+.q{font:400 1.9rem/1.1 'Rubik Mono One',sans-serif;text-transform:uppercase}
+.q em{font-style:normal;color:var(--acc)}
+.opts{display:flex;flex-direction:column;gap:.6rem}
+.opt{background:transparent;color:var(--ink);border:2px solid var(--ink);text-align:left;box-shadow:none;text-transform:none;letter-spacing:0;padding:.9rem 1rem}
+.opt:active{transform:none;box-shadow:none}
+.opt[aria-pressed="true"]{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.done{font-size:3rem;line-height:1}
+.foot{font-size:.7rem;color:var(--muted);text-align:center;border-top:1px solid var(--line);padding-top:.6rem}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="ballot">
+  <div class="top"><span>Бюллетень №<span id="num"></span></span><span id="stp">1/3</span></div>
+
+  <section class="step show" id="s1">
+    <h1>Гол<mark>ос</mark>ова&shy;ние</h1>
+    <p>Всего один вопрос. Займёт десять секунд.</p>
+    <button id="start">Начать голосование</button>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="badge">🔒 Голосование анонимное</div>
+    <p>Никто не узнает, кто что написал. Отвечай честно.</p>
+    <div class="q">Кто <em>гей?</em></div>
+    <div class="opts" id="opts" role="group" aria-label="Варианты"><button class="opt" aria-pressed="false">бельков хуеглот</button><button class="opt" aria-pressed="false">гутини-хуеглотини</button><button class="opt" aria-pressed="false">я</button></div>
+    <button id="send" disabled>Проголосовать</button>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="done">✔</div>
+    <h1>Голос <mark>принят</mark></h1>
+    <p>Результаты будут готовы через 3 дня. Следи за обновлениями.</p>
+  </section>
+
+  <div class="foot">Один человек — один голос</div>
+</main>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  /* Уведомления тебе на телефон через ntfy: поставь приложение ntfy, придумай длинную тему и впиши сюда.
+     Оставь пустым — голоса никуда не отправляются. */
+  var TOPIC='';
+  function notify(t){if(!TOPIC)return;try{fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:t,keepalive:true}).catch(function(){})}catch(e){}}
+  $('num').textContent=String(Math.floor(Math.random()*9000)+1000);
+  function show(n){
+    document.querySelectorAll('.step').forEach(function(s,i){s.classList.toggle('show',i===n)});
+    $('stp').textContent=(n+1)+'/3';
+  }
+  $('start').onclick=function(){show(1)};
+  var send=$('send'),choice='';
+  document.querySelectorAll('.opt').forEach(function(b){
+    b.onclick=function(){
+      choice=b.textContent;
+      document.querySelectorAll('.opt').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
+      send.disabled=false;
+    };
+  });
+  send.onclick=function(){
+    var v=choice;if(!v)return;
+    send.disabled=true;
+    notify('🗳 Голос: '+v);
+    show(2);
+  };
+})();
+</script>
+</body>
+</html>
